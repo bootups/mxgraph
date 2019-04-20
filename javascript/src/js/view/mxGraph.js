@@ -5899,8 +5899,8 @@ mxGraph.prototype.extendParent = function(cell)
 			{
 				p = p.clone();
 				
-				p.width = Math.max(p.width, geo.x + geo.width);
-				p.height = Math.max(p.height, geo.y + geo.height);
+				p.width = Math.max(p.width, geo.x + geo.width + 40);
+				p.height = Math.max(p.height, geo.y + geo.height + 40);
 				
 				this.cellsResized([parent], [p], false);
 			}
@@ -11529,8 +11529,8 @@ mxGraph.prototype.getCellsBeyond = function(x0, y0, parent, rightHalfpane, botto
 				
 				if (this.isCellVisible(child) && state != null)
 				{
-					if ((!rightHalfpane || state.x >= x0) &&
-						(!bottomHalfpane || state.y >= y0))
+                    if ((!rightHalfpane || (state.x + state.width) >= x0) &&
+                            (!bottomHalfpane || (state.y + state.height) >= y0))
 					{
 						result.push(child);
 					}
