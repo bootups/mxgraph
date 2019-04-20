@@ -2511,7 +2511,7 @@ Graph.prototype.updateAlternateBounds = function(cell, geo, willCollapse)
  */
 Graph.prototype.isMoveCellsEvent = function(evt)
 {
-	return mxEvent.isShiftDown(evt);
+	return true;
 };
 
 /**
@@ -2588,24 +2588,43 @@ Graph.prototype.foldCells = function(collapse, recurse, cells, checkFoldable, ev
 Graph.prototype.moveSiblings = function(state, parent, dx, dy)
 {
 	this.model.beginUpdate();
+
 	try
 	{
 		var cells = this.getCellsBeyond(state.x, state.y, parent, true, true);
 		
+		var width = 0; height = 0;
+
 		for (var i = 0; i < cells.length; i++)
 		{
-			if (cells[i] != state.cell)
-			{
-				var tmp = this.view.getState(cells[i]);
-				var geo = this.getCellGeometry(cells[i]);
+			var tmp = this.view.getState(cells[i]);
+			var geo = this.getCellGeometry(cells[i]);
 				
-				if (tmp != null && geo != null)
+			if (tmp != null && geo != null) {
+	
+				if (cells[i] != state.cell)
 				{
 					geo = geo.clone();
+	
+    	            // With respect to sibling calculations, need to adjust here
 					geo.translate(Math.round(dx * Math.max(0, Math.min(1, (tmp.x - state.x) / state.width))),
 						Math.round(dy * Math.max(0, Math.min(1, (tmp.y - state.y) / state.height))));
 					this.model.setGeometry(cells[i], geo);
 				}
+
+				width = Math.max(width, geo.x + geo.width + 40);
+				height = Math.max(height, geo.y + geo.height + 40);
+			}
+		}
+		var parentGeo = this.getCellGeometry(parent);
+		if (parentGeo != null) {
+			parentGeo = parentGeo.clone();
+			parentGeo.width = width + 40;
+			parentGeo.height = height + 40;
+			this.model.setGeometry(parent, parentGeo);
+			var parent = this.model.getParent(parent);
+			if (parent != null) {
+				this.moveSiblings(state, parent, dx, dy);
 			}
 		}
 	}
@@ -7109,6 +7128,8 @@ if (typeof mxVertexHandler != 'undefined')
 		mxCellEditor.prototype.toggleViewMode = function()
 		{
 			var state = this.graph.view.getState(this.editingCell);
+			//todo if (state != null)
+			//     state.style.nl2Br = '1'
 			var nl2Br = state != null && mxUtils.getValue(state.style, 'nl2Br', '1') != '0';
 			var tmp = this.saveSelection();
 			
@@ -7123,6 +7144,7 @@ if (typeof mxVertexHandler != 'undefined')
 				
 				// Removes newlines from HTML and converts breaks to newlines
 				// to match the HTML output in plain text
+				//todo var content = mxUtils.htmlEntities(this.textarea.innerHTML, true);
 				var content = mxUtils.htmlEntities(this.textarea.innerHTML);
 	
 			    // Workaround for trailing line breaks being ignored in the editor
@@ -7143,7 +7165,7 @@ if (typeof mxVertexHandler != 'undefined')
 				this.textarea.style.fontStyle = '';
 				this.textarea.style.fontFamily = mxConstants.DEFAULT_FONTFAMILY;
 				this.textarea.style.textAlign = 'left';
-				
+
 				// Adds padding to make cursor visible with borders
 				this.textarea.style.padding = '2px';
 				
@@ -7244,17 +7266,21 @@ if (typeof mxVertexHandler != 'undefined')
 		
 					this.textarea.style.width = Math.round((this.bounds.width - 4) / scale) + 'px';
 					this.textarea.style.height = Math.round((this.bounds.height - 4) / scale) + 'px';
+    				//todo this.textarea.style.width = '1000px';
+	    			// this.textarea.style.height = '500px';
 					this.textarea.style.overflow = 'auto';
 		
 					// Adds scrollbar offset if visible
 					if (this.textarea.clientHeight < this.textarea.offsetHeight)
 					{
+						//this.textarea.style.height = '500px';
 						this.textarea.style.height = Math.round((this.bounds.height / scale)) + (this.textarea.offsetHeight - this.textarea.clientHeight) + 'px';
 						this.bounds.height = parseInt(this.textarea.style.height) * scale;
 					}
 					
 					if (this.textarea.clientWidth < this.textarea.offsetWidth)
 					{
+						//todo this.textarea.style.width = '1000px';
 						this.textarea.style.width = Math.round((this.bounds.width / scale)) + (this.textarea.offsetWidth - this.textarea.clientWidth) + 'px';
 						this.bounds.width = parseInt(this.textarea.style.width) * scale;
 					}
