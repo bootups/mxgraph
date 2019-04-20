@@ -622,7 +622,9 @@ mxSvgCanvas2D.prototype.addNode = function(filled, stroked)
 		
 		if (s.shadow)
 		{
-			this.root.appendChild(this.createShadow(node));
+			// Replace shadow with 2 multi boxes.
+			this.root.appendChild(this.createShadow(node, 10, 10));
+			this.root.appendChild(this.createShadow(node, 5, 5));
 		}
 	
 		// Adds stroke tolerance
@@ -833,25 +835,15 @@ mxSvgCanvas2D.prototype.createTolerance = function(node)
  * 
  * Creates a shadow for the given node.
  */
-mxSvgCanvas2D.prototype.createShadow = function(node)
+mxSvgCanvas2D.prototype.createShadow = function(node, dx, dy)
 {
 	var shadow = node.cloneNode(true);
 	var s = this.state;
 
-	// Firefox uses transparent for no fill in ellipses
-	if (shadow.getAttribute('fill') != 'none' && (!mxClient.IS_FF || shadow.getAttribute('fill') != 'transparent'))
-	{
-		shadow.setAttribute('fill', s.shadowColor);
-	}
-	
-	if (shadow.getAttribute('stroke') != 'none')
-	{
-		shadow.setAttribute('stroke', s.shadowColor);
-	}
+	shadow.setAttribute('stroke', shadow.getAttribute('stroke'));
 
-	shadow.setAttribute('transform', 'translate(' + this.format(s.shadowDx * s.scale) +
-		',' + this.format(s.shadowDy * s.scale) + ')' + (s.transform || ''));
-	shadow.setAttribute('opacity', s.shadowAlpha);
+	shadow.setAttribute('transform', 'translate(' + dx +
+		',' + dy + ')' + (s.transform || ''));
 	
 	return shadow;
 };
